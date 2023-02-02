@@ -1,9 +1,8 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=/Users/david.petersmway.io/flutter"
-export "FLUTTER_APPLICATION_PATH=/Users/david.petersmway.io/IdeaProjects/storage_engine"
+export "FLUTTER_APPLICATION_PATH=/Users/david.petersmway.io/IdeaProjects/storage_engine/storage_engine_hive_adapter"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
-export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=0.0.1"
 export "FLUTTER_BUILD_NUMBER=0.0.1"
