@@ -1,15 +1,19 @@
 name: storage_engine_hive_adapter
 description: A new Flutter package project.
 version: 0.0.1
-homepage:
+publish_to: none
 
 environment:
-  sdk: '>=3.0.0-157.0.dev <4.0.0'
+  sdk: ">=3.0.0-157.0.dev <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
+
+  storage_engine:
+    path: ../storage_engine
+  hive: ^2.2.3
 
 dev_dependencies:
   flutter_test:
