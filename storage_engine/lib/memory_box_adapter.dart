@@ -22,7 +22,13 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
 
   @override
   void put(String key, T value) => _items[key] = value;
-  
+
   @override
   bool containsKey(String key) => _items.containsKey(key);
+
+  @override
+  Future<void> init(String boxKey) async {}
+  
+  @override
+  void putAll(Map<String, T> values) => _items.addAll(values);
 }
