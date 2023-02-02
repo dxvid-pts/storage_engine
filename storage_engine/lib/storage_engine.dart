@@ -6,7 +6,7 @@ import 'package:storage_engine/memory_box_adapter.dart';
 
 const String _legacyBoxKey =
     '96utq2@9zxwP6R4ZL6tS7Fq^HCU^y&arUx5uwS^wssPLda*zaNesWW@^PSdFDvfZK%5oz';
-const String sepereator = '--6tS7Fq^HCU^y&arUx5uw--';
+const String _sepereator = '--6tS7Fq^HCU^y&arUx5uw--';
 
 class StorageEngine {
   static final Map<String, BoxAdapter> _boxes = {};
@@ -61,5 +61,5 @@ class StorageEngine {
   }
 
   static String _getBoxKey(String key, int version) =>
-      "$key$sepereator$version";
+      "$key$_sepereator$version";
 }
