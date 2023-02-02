@@ -1,25 +1,25 @@
 library storage_engine;
 
-import 'package:flutter/foundation.dart';
 import 'package:storage_engine/box_adapter.dart';
 import 'package:storage_engine/memory_box_adapter.dart';
+import 'package:storage_engine/storage_box.dart';
 
 const String _legacyBoxKey =
     '96utq2@9zxwP6R4ZL6tS7Fq^HCU^y&arUx5uwS^wssPLda*zaNesWW@^PSdFDvfZK%5oz';
 const String _sepereator = '--6tS7Fq^HCU^y&arUx5uw--';
 
 class StorageEngine {
-  static final Map<String, BoxAdapter> _boxes = {};
+  static final Map<String, StorageBox> _storageBoxes = {};
   static final BoxAdapter<bool> _legacyBoxes = MemoryBoxAdapter<bool>()
     ..init(_legacyBoxKey);
 
-  static Future<void> registerBoxAdapter({
+  static Future<void> registerBoxAdapter<T>({
     required String collectionKey,
     required int version,
-    required BoxAdapter adapter,
+    required BoxAdapter<T> adapter,
   }) async {
     //add box with collection key to map
-    _boxes[collectionKey] = adapter;
+    _storageBoxes[collectionKey] = StorageBox<T>.from(adapter);
 
     //generate box key from collection key and version
     final boxKey = _getBoxKey(collectionKey, version);
@@ -55,9 +55,9 @@ class StorageEngine {
     }
   }
 
-  static BoxAdapter<T> getBox<T>(String key) {
-    assert(_boxes.containsKey(key), 'Box \'$key\' does not exist');
-    return _boxes[key]! as BoxAdapter<T>;
+  static StorageBox<T> getBox<T>(String key) {
+    assert(_storageBoxes.containsKey(key), 'Box \'$key\' does not exist');
+    return _storageBoxes[key]! as StorageBox<T>;
   }
 
   static String _getBoxKey(String key, int version) =>
