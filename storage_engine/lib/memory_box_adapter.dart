@@ -6,29 +6,29 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
   final Map<String, T> _items = {};
 
   @override
-  T? get(String key) => _items[key]!;
+  Future<T?> get(String key) async => _items[key]!;
 
   @override
-  void clear() => _items.clear();
+  Future<void> clear() async => _items.clear();
 
   @override
-  List<T> getValues() => _items.values.toList();
+  Future<List<T>> getValues() async => _items.values.toList();
 
   @override
-  List<String> getKeys() => _items.keys.toList();
+  Future<List<String>> getKeys() async => _items.keys.toList();
 
   @override
-  void remove(String key) => _items.remove(key);
+  Future<void> remove(String key) async => _items.remove(key);
 
   @override
-  void put(String key, T value) => _items[key] = value;
+  Future<void> put(String key, T value) async => _items[key] = value;
 
   @override
-  bool containsKey(String key) => _items.containsKey(key);
+  Future<bool> containsKey(String key) async => _items.containsKey(key);
 
   @override
   Future<void> init(String boxKey) async {}
-  
+
   @override
-  void putAll(Map<String, T> values) => _items.addAll(values);
+  Future<void> putAll(Map<String, T> values) async => _items.addAll(values);
 }

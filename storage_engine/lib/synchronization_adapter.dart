@@ -18,11 +18,12 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
       _primaryRawAdapter.init("$boxKey--one")
         ..then((_) {
           //listen for changes in the primary adapter and update the secondary adapter
-          _primaryRawAdapter.watch((key, action) {
+          _primaryRawAdapter.watch((key, action) async {
             if (action == UpdateAction.set || action == UpdateAction.update) {
-              _secondaryRawAdapter.put(key, _primaryRawAdapter.get(key)!);
+              await _secondaryRawAdapter.put(
+                  key, (await _primaryRawAdapter.get(key))!);
             } else if (action == UpdateAction.delete) {
-              _secondaryRawAdapter.remove(key);
+              await _secondaryRawAdapter.remove(key);
             }
 
             //notify listeners of the sync adapter
@@ -32,11 +33,12 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
       _secondaryRawAdapter.init("$boxKey--two")
         ..then((_) {
           //listen for changes in the secondary adapter and update the primary adapter
-          _secondaryRawAdapter.watch((key, action) {
+          _secondaryRawAdapter.watch((key, action) async {
             if (action == UpdateAction.set || action == UpdateAction.update) {
-              _primaryRawAdapter.put(key, _secondaryRawAdapter.get(key)!);
+              await _primaryRawAdapter.put(
+                  key, (await _secondaryRawAdapter.get(key))!);
             } else if (action == UpdateAction.delete) {
-              _primaryRawAdapter.remove(key);
+              await _primaryRawAdapter.remove(key);
             }
 
             //notify listeners of the sync adapter
@@ -47,38 +49,38 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
   }
 
   @override
-  void clear() {
-    _primaryRawAdapter.clear();
-    _secondaryRawAdapter.clear();
-  }
+  Future<void> clear() => Future.wait([
+        _primaryRawAdapter.clear(),
+        _secondaryRawAdapter.clear(),
+      ]);
 
   @override
-  bool containsKey(String key) => _primaryRawAdapter.containsKey(key);
+  Future<bool> containsKey(String key) => _primaryRawAdapter.containsKey(key);
 
   @override
-  T? get(String key) => _primaryRawAdapter.get(key);
+  Future<T?> get(String key) => _primaryRawAdapter.get(key);
 
   @override
-  List<String> getKeys() => _primaryRawAdapter.getKeys();
+  Future<List<String>> getKeys() => _primaryRawAdapter.getKeys();
 
   @override
-  List<T> getValues() => _primaryRawAdapter.getValues();
+  Future<List<T>> getValues() => _primaryRawAdapter.getValues();
 
   @override
-  void put(String key, T value) {
-    _primaryRawAdapter.put(key, value);
-    _secondaryRawAdapter.put(key, value);
-  }
+  Future<void> put(String key, T value) => Future.wait([
+        _primaryRawAdapter.put(key, value),
+        _secondaryRawAdapter.put(key, value),
+      ]);
 
   @override
-  void putAll(Map<String, T> values) {
-    _primaryRawAdapter.putAll(values);
-    _secondaryRawAdapter.putAll(values);
-  }
+  Future<void> putAll(Map<String, T> values) => Future.wait([
+        _primaryRawAdapter.putAll(values),
+        _secondaryRawAdapter.putAll(values),
+      ]);
 
   @override
-  void remove(String key) {
-    _primaryRawAdapter.remove(key);
-    _secondaryRawAdapter.remove(key);
-  }
+  Future<void> remove(String key) => Future.wait([
+        _primaryRawAdapter.remove(key),
+        _secondaryRawAdapter.remove(key),
+      ]);
 }

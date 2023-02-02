@@ -14,26 +14,26 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
   late final Box<T> _box;
 
   @override
-  T? get(String key) => _box.get(key);
+  Future<T?> get(String key) async => _box.get(key);
 
   @override
-  void clear() => _box.clear();
+  Future<void> clear() => _box.clear();
 
   @override
-  List<T> getValues() => _box.values.toList();
+  Future<List<T>> getValues() async => _box.values.toList();
 
   @override
-  List<String> getKeys() => [..._box.keys];
+  Future<List<String>> getKeys() async => [..._box.keys];
 
   @override
-  void remove(String key) => _box.delete(key);
+  Future<void> remove(String key) async => _box.delete(key);
 
   @override
-  void put(String key, T value) => _box.put(key, value);
+  Future<void> put(String key, T value) => _box.put(key, value);
 
   @override
-  bool containsKey(String key) => _box.containsKey(key);
+  Future<bool> containsKey(String key) async => _box.containsKey(key);
 
   @override
-  void putAll(Map<String, T> values) => _box.putAll(values);
+  Future<void> putAll(Map<String, T> values) => _box.putAll(values);
 }

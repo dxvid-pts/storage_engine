@@ -31,27 +31,30 @@ class StorageEngine {
     await adapter.init(boxKey);
   }
 
-  static void migrateBoxFromAdapterIfExist<T>({
+  static Future<void> migrateBoxFromAdapterIfExist<T>({
     required String collectionKey,
     required int oldVersion,
     required BoxAdapter<T> oldAdapter,
-  }) {
+  }) async {
     final boxKey = _getBoxKey(collectionKey, oldVersion);
 
-    print(_legacyBoxes.getKeys());
+    print(await _legacyBoxes.getKeys());
 
     //check if box has data left -> migrate
-    if (_legacyBoxes.containsKey(boxKey) && _legacyBoxes.get(boxKey)! == true) {
+    if (await _legacyBoxes.containsKey(boxKey) &&
+        await _legacyBoxes.get(boxKey) == true) {
       //get all data from old adapter
       final map = Map<String, T>.fromIterables(
-          oldAdapter.getKeys(), oldAdapter.getValues());
+        await oldAdapter.getKeys(),
+        await oldAdapter.getValues(),
+      );
 
       //get current box from collection key
       final currentBox = getBox<T>(collectionKey);
-      currentBox.putAll(map);
+      await currentBox.putAll(map);
 
       //mark old box as migrated
-      _legacyBoxes.put(boxKey, false);
+      await _legacyBoxes.put(boxKey, false);
     }
   }
 

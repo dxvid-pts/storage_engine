@@ -10,21 +10,21 @@ abstract class BoxAdapter<T> {
 
   Future<void> init(String boxKey);
 
-  bool containsKey(String key);
+  Future<bool> containsKey(String key);
 
-  T? get(String key);
+  Future<T?> get(String key);
 
-  void put(String key, T value);
+  Future<void> put(String key, T value);
 
-  void putAll(Map<String, T> values);
+  Future<void> putAll(Map<String, T> values);
 
-  void remove(String key);
+  Future<void> remove(String key);
 
-  void clear();
+  Future<void> clear();
 
-  List<T> getValues();
+  Future<List<T>> getValues();
 
-  List<String> getKeys();
+  Future<List<String>> getKeys();
 
   void notifyListeners(String key, UpdateAction action) {
     for (var listener in _listeners) {
