@@ -1,7 +1,7 @@
 import 'package:storage_engine/box_adapter.dart';
 
 class MemoryBoxAdapter<T> extends BoxAdapter<T> {
-  MemoryBoxAdapter();
+  MemoryBoxAdapter() : super(runInIsolate: false);
 
   final Map<String, T> _items = {};
 

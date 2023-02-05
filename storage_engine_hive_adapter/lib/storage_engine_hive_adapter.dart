@@ -4,7 +4,7 @@ import 'package:hive/hive.dart';
 import 'package:storage_engine/box_adapter.dart';
 
 class HiveBoxAdapter<T> extends BoxAdapter<T> {
-  HiveBoxAdapter();
+  HiveBoxAdapter() : super(runInIsolate: true);
 
   @override
   Future<void> init(String boxKey) async {

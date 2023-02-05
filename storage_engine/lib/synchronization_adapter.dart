@@ -5,9 +5,10 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
   late final BoxAdapter<T> _primaryRawAdapter;
   late final BoxAdapter<T> _secondaryRawAdapter;
 
-  SynchronizationAdapter(
-      {required BoxAdapter<T> primaryAdapter,
-      required BoxAdapter<T> secondaryAdapter}) {
+  SynchronizationAdapter({
+    required BoxAdapter<T> primaryAdapter,
+    required BoxAdapter<T> secondaryAdapter,
+  }) : super(runInIsolate: false) {
     _primaryRawAdapter = primaryAdapter;
     _secondaryRawAdapter = secondaryAdapter;
   }

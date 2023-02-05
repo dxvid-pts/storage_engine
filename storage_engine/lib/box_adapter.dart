@@ -3,9 +3,10 @@ import 'package:storage_engine/update_enum.dart';
 typedef UpdateCallback<T> = void Function(String key, UpdateAction action);
 
 abstract class BoxAdapter<T> {
-  BoxAdapter();
+  late final bool runInIsolate;
 
-  late final String boxKey;
+  BoxAdapter({this.runInIsolate = true});
+
   final List<UpdateCallback> _listeners = [];
 
   Future<void> init(String boxKey);

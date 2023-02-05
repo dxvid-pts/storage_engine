@@ -18,11 +18,11 @@ class StorageEngine {
     required int version,
     required BoxAdapter<T> adapter,
   }) async {
-    //add box with collection key to map
-    _storageBoxes[collectionKey] = StorageBox<T>.from(adapter);
-
     //generate box key from collection key and version
     final boxKey = _getBoxKey(collectionKey, version);
+
+    //add box with collection key to map
+    _storageBoxes[collectionKey] = StorageBox<T>.from(adapter, boxKey);
 
     //log box key and mark available data to true, so we can migrate data later
     _legacyBoxes.put(boxKey, true);
