@@ -20,7 +20,7 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
         ..then((_) {
           //listen for changes in the primary adapter and update the secondary adapter
           _primaryRawAdapter.watch((key, action) async {
-            if (action == UpdateAction.set || action == UpdateAction.update) {
+            if (action == UpdateAction.put) {
               await _secondaryRawAdapter.put(
                   key, (await _primaryRawAdapter.get(key))!);
             } else if (action == UpdateAction.delete) {
@@ -35,7 +35,7 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
         ..then((_) {
           //listen for changes in the secondary adapter and update the primary adapter
           _secondaryRawAdapter.watch((key, action) async {
-            if (action == UpdateAction.set || action == UpdateAction.update) {
+            if (action == UpdateAction.put) {
               await _primaryRawAdapter.put(
                   key, (await _secondaryRawAdapter.get(key))!);
             } else if (action == UpdateAction.delete) {

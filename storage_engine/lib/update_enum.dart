@@ -1,5 +1,4 @@
 enum UpdateAction {
-  set,
-  update,
+  put,
   delete,
 }

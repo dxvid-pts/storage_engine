@@ -67,7 +67,7 @@ class StorageBox<T> {
     }
 
     // notify listeners
-    _adapter.notifyListeners(key, UpdateAction.set);
+    _adapter.notifyListeners(key, UpdateAction.put);
   }
 
   Future<void> putAll(Map<String, T> values) async {
@@ -85,7 +85,7 @@ class StorageBox<T> {
 
     // notify listeners for each key
     for (var key in values.keys) {
-      _adapter.notifyListeners(key, UpdateAction.set);
+      _adapter.notifyListeners(key, UpdateAction.put);
     }
   }
 
