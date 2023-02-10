@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:storage_engine/memory_box_adapter.dart';
+import 'package:storage_engine/storage_box.dart';
 
 import 'package:storage_engine/storage_engine.dart';
 
@@ -13,11 +14,12 @@ void main() async {
 
   final box = StorageEngine.getBox<String>(testCollectionKey);
 
-  const key = "testKey";
-  const value = "testValue";
+  await boxAdapterTest(box, "testValue", "testValue2");
+}
 
+Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
+  const key = "testKey";
   const key2 = "testKey2";
-  const value2 = "testValue2";
 
   //as the memory box adapter is used, the box should be empty on start
   test('test empty on start', () async {
