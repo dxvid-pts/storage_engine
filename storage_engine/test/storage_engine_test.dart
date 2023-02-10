@@ -5,16 +5,30 @@ import 'package:storage_engine/storage_box.dart';
 import 'package:storage_engine/storage_engine.dart';
 
 void main() async {
-  const testCollectionKey = "testBox";
+  //-----------------string box tests-----------------
+  const testStringCollectionKey = "stringBox";
   await StorageEngine.registerBoxAdapter<String>(
-    collectionKey: testCollectionKey,
+    collectionKey: testStringCollectionKey,
     version: 1,
     adapter: MemoryBoxAdapter(),
   );
 
-  final box = StorageEngine.getBox<String>(testCollectionKey);
+  final stringBox = StorageEngine.getBox<String>(testStringCollectionKey);
 
-  await boxAdapterTest(box, "testValue", "testValue2");
+  //-----------------int box tests-----------------
+  const testIntCollectionKey = "intBox";
+  await StorageEngine.registerBoxAdapter<int>(
+    collectionKey: testIntCollectionKey,
+    version: 1,
+    adapter: MemoryBoxAdapter(),
+  );
+
+  final intBox = StorageEngine.getBox<int>(testIntCollectionKey);
+
+  //-----------------run tests-----------------
+
+  await boxAdapterTest<String>(stringBox, "testValue", "testValue2");
+  await boxAdapterTest<int>(intBox, 1, 2000);
 }
 
 Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
