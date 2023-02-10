@@ -6,7 +6,7 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
   final Map<String, T> _items = {};
 
   @override
-  Future<T?> get(String key) async => _items[key]!;
+  Future<T?> get(String key) async => _items[key];
 
   @override
   Future<void> clear() async => _items.clear();

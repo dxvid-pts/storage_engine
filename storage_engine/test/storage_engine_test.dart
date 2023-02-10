@@ -19,6 +19,21 @@ void main() async {
   const key2 = "testKey2";
   const value2 = "testValue2";
 
+  //as the memory box adapter is used, the box should be empty on start
+  test('test empty on start', () async {
+    expect(await box.getKeys(), []);
+  });
+
+  //write tests for clear
+  test('box clear', () async {
+    //-------------test clear: key = val -> get key => null -------------
+    await box.put(key, value);
+    expect(await box.get(key), value);
+
+    await box.clear();
+    expect(await box.get(key), null);
+  });
+
   //write tests for put
   test('box put', () async {
     //clear box for next tests
