@@ -1,43 +1,40 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:flutter/foundation.dart';
 import 'package:storage_engine/box_adapter.dart';
+import 'package:stream_channel/isolate_channel.dart';
 
-final mainPort = ReceivePort();
-late final StreamQueue _events;
-late final SendPort _mainSendPort;
+// ------------ internal variables ------------
+final _rPort = ReceivePort();
+late final IsolateChannel _channelA;
+
 bool _isolateRunning = false;
+
+late final Stream _broadCastStream;
+
+// ------------ external api ------------
 
 Future<void> spawnIsolateIfNotRunning() async {
   if (_isolateRunning) return;
   _isolateRunning = true;
 
-  await Isolate.spawn(_isolateRunner, mainPort.sendPort);
+  _channelA = IsolateChannel.connectReceive(_rPort);
+  _broadCastStream = _channelA.stream.asBroadcastStream().asBroadcastStream();
 
-  // Convert the ReceivePort into a StreamQueue to receive messages from the
-  // spawned isolate using a pull-based interface. Events are stored in this
-  // queue until they are accessed by `events.next`.
-  _events = StreamQueue<dynamic>(mainPort);
-
-  // The first message from the spawned isolate is a SendPort. This port is
-  // used to communicate with the spawned isolate.
-  _mainSendPort = await _getNextIsolateMessage();
+  await Isolate.spawn(_isolateRunner, _rPort.sendPort);
 }
-
-Future<dynamic> _getNextIsolateMessage() => _events.next;
-
-/*Future<dynamic> runFunctionInIsolate(Function function) {
-  mainSendPort.send(function);
-  return _getNextIsolateMessage();
-}*/
 
 Future<void> registerIsolateBox({
   required String boxKey,
   required BoxAdapter adapter,
 }) async {
-  _mainSendPort.send(RegisterIsolateBoxStruct(boxKey, adapter));
-  await _getNextIsolateMessage();
+  String jobId = _generateJobId();
+  _sendToIsolate(jobId, RegisterIsolateBoxStruct(boxKey, adapter));
+
+  //wait until the isolate is done
+  await _getIsolateMessageWithId(jobId);
 }
 
 Future<dynamic> runBoxFunctionInIsolate({
@@ -46,70 +43,86 @@ Future<dynamic> runBoxFunctionInIsolate({
   dynamic value,
   required String collectionKey,
 }) {
-  _mainSendPort
-      .send(BoxFunctionInIsolateStruct(type, key, value, collectionKey));
-  return _getNextIsolateMessage();
+  String jobId = _generateJobId();
+  _sendToIsolate(
+      jobId, BoxFunctionInIsolateStruct(type, key, value, collectionKey));
+
+  //return job result
+  return _getIsolateMessageWithId(jobId);
 }
 
-void _isolateRunner(SendPort p) async {
+//------------ isolate runner ------------
+
+Future<void> _isolateRunner(SendPort sPort) async {
   debugPrint('Spawned isolate started.');
   final Map<String, BoxAdapter> adapters = {};
 
-  // Send a SendPort to the main isolate so that it can send JSON strings to
-  // this isolate.
-  final commandPort = ReceivePort();
-  p.send(commandPort.sendPort);
+  IsolateChannel channelB = IsolateChannel.connectSend(sPort);
+  channelB.stream.listen((wrapper) {
+    final jobId = wrapper.jobId;
+    final message = wrapper.body;
 
-  // Wait for messages from the main isolate.
-  await for (final message in commandPort) {
     debugPrint("received message: ${message.runtimeType}");
     if (message is BoxFunctionInIsolateStruct) {
       //dont wait for futures so we dont stop the isolate (return the future -> main thread waits)
       try {
+        var result;
         switch (message.type) {
+          case BoxFunctionType.init:
+            result = adapters[message.collectionKey]?.init(message.key!);
+            break;
           case BoxFunctionType.containsKey:
-            p.send(adapters[message.collectionKey]?.containsKey(message.key!));
+            result = adapters[message.collectionKey]?.containsKey(message.key!);
             break;
           case BoxFunctionType.get:
-            p.send(adapters[message.collectionKey]?.get(message.key!));
+            result = adapters[message.collectionKey]?.get(message.key!);
             break;
           case BoxFunctionType.getKeys:
-            p.send(adapters[message.collectionKey]?.getKeys());
+            result = adapters[message.collectionKey]?.getKeys();
             break;
           case BoxFunctionType.getValues:
-            p.send(adapters[message.collectionKey]?.getValues());
+            result = adapters[message.collectionKey]?.getValues();
             break;
           case BoxFunctionType.put:
-            p.send(adapters[message.collectionKey]
-                ?.put(message.key!, message.value!));
+            result = adapters[message.collectionKey]
+                ?.put(message.key!, message.value!);
             break;
           case BoxFunctionType.putAll:
-            p.send(adapters[message.collectionKey]?.putAll(message.value!));
+            result = adapters[message.collectionKey]?.putAll(message.value!);
             break;
           case BoxFunctionType.delete:
-            p.send(adapters[message.collectionKey]?.remove(message.key!));
+            result = adapters[message.collectionKey]?.remove(message.key!);
             break;
           case BoxFunctionType.clear:
-            p.send(adapters[message.collectionKey]?.clear());
+            result = adapters[message.collectionKey]?.clear();
             break;
           default:
             //always send something as the sender expects a response
-            p.send(null);
+            result = null;
         }
+        channelB.sink.add(_IsolateJob(jobId, result));
       } catch (_) {
         //always send something as the sender expects a response
-        p.send(null);
+        channelB.sink.add(null);
       }
     } else if (message is RegisterIsolateBoxStruct) {
       //register adapter for later use if message is RegisterIsolateBoxStruct
       adapters[message.boxKey] = message.adapter;
-      p.send(true);
+      channelB.sink.add(_IsolateJob(jobId, true));
     } else if (message is ExitIsolateStruct) {
+      print("exiting isolate");
       Isolate.exit();
     }
+  });
+}
 
-    // Send the result to the main isolate.
-  }
+// --------- isolate communication structs ---------
+
+class _IsolateJob {
+  final String jobId;
+  final dynamic body;
+
+  const _IsolateJob(this.jobId, this.body);
 }
 
 class ExitIsolateStruct {}
@@ -132,6 +145,7 @@ class BoxFunctionInIsolateStruct {
 }
 
 enum BoxFunctionType {
+  init,
   containsKey,
   get,
   getValues,
@@ -140,4 +154,15 @@ enum BoxFunctionType {
   putAll,
   delete,
   clear,
+}
+
+// --------- Helper functions ---------
+
+String _generateJobId() => DateTime.now().microsecondsSinceEpoch.toString();
+
+Future<dynamic> _getIsolateMessageWithId(String jobId) async=>
+   ( await _broadCastStream.firstWhere((item) => item.jobId == jobId)).body;
+
+void _sendToIsolate(String jobId, dynamic body) {
+  _channelA.sink.add(_IsolateJob(jobId, body));
 }
