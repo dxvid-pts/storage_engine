@@ -6,7 +6,7 @@ import 'package:storage_engine/storage_box.dart';
 
 const String _legacyBoxKey =
     '96utq2@9zxwP6R4ZL6tS7Fq^HCU^y&arUx5uwS^wssPLda*zaNesWW@^PSdFDvfZK%5oz';
-const String _sepereator = '--6tS7Fq^HCU^y&arUx5uw--';
+const String _sepereator = '__engine__';
 
 class StorageEngine {
   static final Map<String, StorageBox> _storageBoxes = {};
@@ -27,8 +27,11 @@ class StorageEngine {
     //log box key and mark available data to true, so we can migrate data later
     _legacyBoxes.put(boxKey, true);
 
-    //init box with box key
-    await adapter.init(boxKey);
+    if (!adapter.runInIsolate) {
+      //init box with box key if not running in isolate, 
+      //otherwise it will be initialized from the storage box
+      await adapter.init(boxKey);
+    }
   }
 
   static Future<void> migrateBoxFromAdapterIfExist<T>({

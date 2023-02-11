@@ -16,8 +16,16 @@ class StorageBox<T> {
 
     if (_useIsolate) {
       Future<void> waitForIsolateSetup() async {
-        await spawnIsolateIfNotRunning();
-        await registerIsolateBox(boxKey: _boxKey, adapter: adapter);
+          await spawnIsolateIfNotRunning();
+          await registerIsolateBox(boxKey: _boxKey, adapter: adapter);
+          //init box with box key when running in isolate
+          //otherwise it will be initialized by the storage engine
+          //TODO: unify (put in waitForIsolateSetup)
+          await runBoxFunctionInIsolate(
+            collectionKey: _boxKey,
+            type: BoxFunctionType.containsKey,
+            key: boxKey,
+          );
       }
 
       _waitForIsolateSetup = waitForIsolateSetup();

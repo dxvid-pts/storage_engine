@@ -3,6 +3,7 @@ import 'package:storage_engine/memory_box_adapter.dart';
 import 'adapter_test.dart';
 
 void main() async {
+  //Test MemoryBoxAdapter
   await testAdapter(
     stringAdapter: MemoryBoxAdapter<String>(),
     intAdapter: MemoryBoxAdapter<int>(),
