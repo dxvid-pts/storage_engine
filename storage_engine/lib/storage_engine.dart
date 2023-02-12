@@ -13,11 +13,11 @@ class StorageEngine {
   static final BoxAdapter<bool> _legacyBoxes = MemoryBoxAdapter<bool>()
     ..init(_legacyBoxKey);
 
-  static Future<void> registerBoxAdapter<T>({
+  static void registerBoxAdapter<T>({
     required String collectionKey,
     required int version,
     required BoxAdapter<T> adapter,
-  }) async {
+  }) {
     //generate box key from collection key and version
     final boxKey = _getBoxKey(collectionKey, version);
 
@@ -26,12 +26,6 @@ class StorageEngine {
 
     //log box key and mark available data to true, so we can migrate data later
     _legacyBoxes.put(boxKey, true);
-
-    if (!adapter.runInIsolate) {
-      //init box with box key if not running in isolate, 
-      //otherwise it will be initialized from the storage box
-      await adapter.init(boxKey);
-    }
   }
 
   static Future<void> migrateBoxFromAdapterIfExist<T>({

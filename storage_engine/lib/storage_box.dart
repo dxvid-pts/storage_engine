@@ -6,35 +6,38 @@ class StorageBox<T> {
   late final BoxAdapter<T> _adapter;
   late final String _boxKey;
 
-  late final Future<void> _waitForIsolateSetup;
-
   bool get _useIsolate => _adapter.runInIsolate;
+
+  late final Future<void> _waitToBeInitialized;
 
   StorageBox.from(BoxAdapter<T> adapter, String boxKey) {
     _adapter = adapter;
     _boxKey = boxKey;
 
-    if (_useIsolate) {
-      Future<void> waitForIsolateSetup() async {
-          await spawnIsolateIfNotRunning();
-          await registerIsolateBox(boxKey: _boxKey, adapter: adapter);
-          //init box with box key when running in isolate
-          //otherwise it will be initialized by the storage engine
-          //TODO: unify (put in waitForIsolateSetup)
-          await runBoxFunctionInIsolate(
-            collectionKey: _boxKey,
-            type: BoxFunctionType.containsKey,
-            key: boxKey,
-          );
-      }
+    Future<void> waitToBeInitialized() async {
+      if (_useIsolate) {
+        await spawnIsolateIfNotRunning();
+        await registerIsolateBox(boxKey: _boxKey, adapter: adapter);
 
-      _waitForIsolateSetup = waitForIsolateSetup();
+        //init box with box key when running in isolate
+        await runBoxFunctionInIsolate(
+          collectionKey: _boxKey,
+          type: BoxFunctionType.init,
+          key: _boxKey,
+        );
+      } else {
+        //init box in non isolate environments
+        await adapter.init(boxKey);
+      }
     }
+
+    _waitToBeInitialized = waitToBeInitialized();
   }
 
   Future<bool> containsKey(String key) async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       return await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.containsKey,
@@ -46,9 +49,10 @@ class StorageBox<T> {
   }
 
   Future<T?> get(String key) async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
       print("isolate get");
-      await _waitForIsolateSetup;
       return await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.get,
@@ -60,10 +64,10 @@ class StorageBox<T> {
   }
 
   Future<void> put(String key, T value) async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
       print("isolate put");
-
-      await _waitForIsolateSetup;
       await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.put,
@@ -79,8 +83,9 @@ class StorageBox<T> {
   }
 
   Future<void> putAll(Map<String, T> values) async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       //putAll uses value instead of key
       await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
@@ -98,8 +103,9 @@ class StorageBox<T> {
   }
 
   Future<void> remove(String key) async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.delete,
@@ -114,11 +120,12 @@ class StorageBox<T> {
   }
 
   Future<void> clear() async {
+    await _waitToBeInitialized;
+
     //get keys to notify listeners
     final keys = await _adapter.getKeys();
 
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.clear,
@@ -134,8 +141,9 @@ class StorageBox<T> {
   }
 
   Future<List<T>> getValues() async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       return await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.getValues,
@@ -146,8 +154,9 @@ class StorageBox<T> {
   }
 
   Future<List<String>> getKeys() async {
+    await _waitToBeInitialized;
+
     if (_useIsolate) {
-      await _waitForIsolateSetup;
       return await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
         type: BoxFunctionType.getKeys,
