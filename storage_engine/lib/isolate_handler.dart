@@ -59,6 +59,10 @@ Future<void> _isolateRunner(SendPort sPort) async {
 
   IsolateChannel channelB = IsolateChannel.connectSend(sPort);
   channelB.stream.listen((wrapper) {
+    //only listen on _IsolateJobs
+    if (!wrapper is _IsolateJob) {
+      return;
+    }
     final jobId = wrapper.jobId;
     final message = wrapper.body;
 
