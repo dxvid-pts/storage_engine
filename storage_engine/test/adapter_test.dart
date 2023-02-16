@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:storage_engine/box_adapter.dart';
 import 'package:storage_engine/storage_box.dart';
 import 'package:storage_engine/storage_engine.dart';
+import 'package:storage_engine/update_enum.dart';
 
 Future<void> testAdapterWithType<T>(
   BoxAdapter<T> adapter,
@@ -179,7 +180,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     );
 
     //list only goes to 100, so this can only return 10 (90-100 instead of 90-120)
-     expect(
+    expect(
       await box.getAll(
           pagination: const ListPaginationParams(page: 3, perPage: 30)),
       _sublistMap<T>(expectedMap, 90, 100),
@@ -202,6 +203,68 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
 
     expect(await box.getAll(), {key: value, key2: value2});
   });
+
+  //write tests for watch
+  test('box watch', () async {
+    //clear box for next tests
+    await box.clear();
+
+    //-------------test getKeys: key = val -> getKeys => [key] -------------
+    // await box.put(key, value, latency: const Duration(milliseconds: 100));
+    //expect put event after put
+    await _expectNext<T>(
+      box: box,
+      expectedKey: key,
+      expectedAction: UpdateAction.put,
+      function: () => box.put(key, value),
+    );
+
+    //expect put event after update with same value
+    await _expectNext<T>(
+      box: box,
+      expectedKey: key,
+      expectedAction: UpdateAction.put,
+      function: () => box.put(key, value),
+    );
+
+    //expect put event after update with different value
+    await _expectNext<T>(
+      box: box,
+      expectedKey: key,
+      expectedAction: UpdateAction.put,
+      function: () => box.put(key, value2),
+    );
+
+    //expect delete event after delete
+    await _expectNext<T>(
+      box: box,
+      expectedKey: key,
+      expectedAction: UpdateAction.delete,
+      function: () async {
+        await box.remove(key);
+      },
+    );
+
+    //expect put events after put multiple
+    await _expectNextList<T>(
+      box: box,
+      expectedKeys: [key, key2],
+      expectedActions: [UpdateAction.put, UpdateAction.put],
+      function: () async {
+        await box.putAll({key: value, key2: value2});
+      },
+    );
+
+    //expect delete events after clear multiple
+    await _expectNextList<T>(
+      box: box,
+      expectedKeys: [key, key2],
+      expectedActions: [UpdateAction.delete, UpdateAction.delete],
+      function: () async {
+        await box.clear();
+      },
+    );
+  });
 }
 
 Map<String, T> _sublistMap<T>(Map<String, T> map, int start, int end) {
@@ -212,4 +275,50 @@ Map<String, T> _sublistMap<T>(Map<String, T> map, int start, int end) {
     keys.sublist(start, end),
     values.sublist(start, end),
   );
+}
+
+Future<void> _expectNext<T>({
+  required StorageBox<T> box,
+  required String expectedKey,
+  required UpdateAction expectedAction,
+  required Function function,
+}) =>
+    _expectNextList(
+        box: box,
+        expectedKeys: [expectedKey],
+        expectedActions: [expectedAction],
+        function: function);
+
+Future<void> _expectNextList<T>({
+  required StorageBox<T> box,
+  required List<String> expectedKeys,
+  required List<UpdateAction> expectedActions,
+  required Function function,
+}) async {
+  final List<String> receivedKeys = [];
+  final List<UpdateAction> receivedActions = [];
+
+  //listen to the box
+  box.watch((key, action) {
+    receivedKeys.add(key);
+    receivedActions.add(action);
+  });
+
+  //run function
+  await function();
+
+  //wait 5ms for the events to be received
+  await Future.delayed(const Duration(milliseconds: 5));
+
+  //check if the event was received
+  _checkLists(receivedKeys, expectedKeys);
+  _checkLists(receivedActions, expectedActions);
+}
+
+void _checkLists(List l1, List l2) {
+  expect(l1.length, l2.length);
+  expect(l1.runtimeType, l2.runtimeType);
+  for (int i = 0; i < l1.length; i++) {
+    expect(l1[i], l2[i]);
+  }
 }
