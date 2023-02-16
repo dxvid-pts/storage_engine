@@ -160,8 +160,8 @@ enum BoxFunctionType {
 
 String _generateJobId() => DateTime.now().microsecondsSinceEpoch.toString();
 
-Future<dynamic> _getIsolateMessageWithId(String jobId) async=>
-   ( await _broadCastStream.firstWhere((item) => item.jobId == jobId)).body;
+Future<dynamic> _getIsolateMessageWithId(String jobId) async =>
+    (await _broadCastStream.firstWhere((item) => item.jobId == jobId)).body;
 
 void _sendToIsolate(String jobId, dynamic body) {
   _channelA.sink.add(_IsolateJob(jobId, body));

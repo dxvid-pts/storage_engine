@@ -11,7 +11,7 @@ Future<void> testAdapterWithType<T>(
   T value2,
 ) async {
   final testCollectionKey = "${T.runtimeType}Box-${Random().nextInt(999999)}";
-  await StorageEngine.registerBoxAdapter<T>(
+  StorageEngine.registerBoxAdapter<T>(
     collectionKey: testCollectionKey,
     version: 1,
     adapter: adapter,
