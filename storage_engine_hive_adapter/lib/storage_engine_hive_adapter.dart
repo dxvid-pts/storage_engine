@@ -4,10 +4,26 @@ import 'package:hive/hive.dart';
 import 'package:storage_engine/box_adapter.dart';
 
 class HiveBoxAdapter<T> extends BoxAdapter<T> {
-  HiveBoxAdapter() : super(runInIsolate: true);
+  HiveBoxAdapter({
+    required this.path,
+    this.adapters = const {},
+  }) : super(runInIsolate: true);
+
+  final String path;
+  Set<TypeAdapter<T>> adapters;
 
   @override
   Future<void> init(String boxKey) async {
+    print(path);
+    //TODO is web
+    Hive.init(path);
+
+    for (final adapter in adapters) {
+      if (!Hive.isAdapterRegistered(adapter.typeId)) {
+        Hive.registerAdapter(adapter);
+      }
+    }
+
     _box = await Hive.openBox<T>(boxKey);
   }
 

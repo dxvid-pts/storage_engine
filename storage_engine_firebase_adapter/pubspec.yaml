@@ -10,14 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
 
+  storage_engine:
+    path: ../storage_engine
+  cloud_firestore: ^4.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^2.0.0
-
-  storage_engine:
-    path: ../storage_engine
-  cloud_firestore: ^4.3.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

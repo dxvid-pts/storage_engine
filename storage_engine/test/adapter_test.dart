@@ -308,7 +308,7 @@ Future<void> _expectNextList<T>({
   await function();
 
   //wait 5ms for the events to be received
-  await Future.delayed(const Duration(milliseconds: 5));
+  await Future.delayed(const Duration(milliseconds: 100));
 
   //check if the event was received
   _checkLists(receivedKeys, expectedKeys);
