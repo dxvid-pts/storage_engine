@@ -1,6 +1,6 @@
 import 'package:storage_engine/memory_box_adapter.dart';
 
-import 'adapter_test.dart';
+import 'check_adapter.dart';
 
 void main() async {
   //Test MemoryBoxAdapter
