@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:storage_engine/box_adapter.dart';
 import 'package:storage_engine/isolate_handler.dart';
 import 'package:storage_engine/update_enum.dart';
@@ -195,7 +197,7 @@ class StorageBox<T> {
     await _waitToBeInitialized;
 
     //get keys to notify listeners
-    final keys = await _adapter.getKeys();
+    final keys = (await _adapter.getAll()).keys.toSet();
 
     if (_useIsolate) {
       await runBoxFunctionInIsolate(
@@ -207,35 +209,35 @@ class StorageBox<T> {
     }
 
     // notify listeners for each key
-    for (var key in keys) {
+    for (String key in keys) {
       _adapter.notifyListeners(key, UpdateAction.delete);
     }
   }
 
-  Future<List<T>> getValues() async {
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
     await _waitToBeInitialized;
 
-    if (_useIsolate) {
-      return await runBoxFunctionInIsolate(
-        collectionKey: _boxKey,
-        type: BoxFunctionType.getValues,
-      );
-    } else {
-      return await _adapter.getValues();
-    }
-  }
-
-  Future<List<String>> getKeys() async {
-    await _waitToBeInitialized;
+    final Map<String, T> values;
 
     if (_useIsolate) {
-      return await runBoxFunctionInIsolate(
+      values = await runBoxFunctionInIsolate(
         collectionKey: _boxKey,
-        type: BoxFunctionType.getKeys,
+        type: BoxFunctionType.getAll,
+        value: pagination,
       );
     } else {
-      return await _adapter.getKeys();
+      values = await _adapter.getAll(pagination: pagination);
     }
+
+    //always prefer cache over storage
+    //check if key is in cache and overwrite storage value
+    for(final cacheKey in _cache.keys) {
+      if(values.containsKey(cacheKey)) {
+        values[cacheKey] = _cache[cacheKey]!;
+      }
+    }
+
+    return values;
   }
 
   void watch(UpdateCallback callback) => _adapter.watch(callback);

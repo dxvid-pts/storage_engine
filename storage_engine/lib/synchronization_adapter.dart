@@ -62,12 +62,8 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
   Future<T?> get(String key) => _primaryRawAdapter.get(key);
 
   @override
-  Future<List<String>> getKeys({ListPaginationParams? pagination}) =>
-      _primaryRawAdapter.getKeys(pagination: pagination);
-
-  @override
-  Future<List<T>> getValues({ListPaginationParams? pagination}) =>
-      _primaryRawAdapter.getValues(pagination: pagination);
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination}) =>
+      _primaryRawAdapter.getAll(pagination: pagination);
 
   @override
   Future<void> put(String key, T value) => Future.wait([

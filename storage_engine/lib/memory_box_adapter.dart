@@ -12,26 +12,16 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
   Future<void> clear() async => _items.clear();
 
   @override
-  Future<List<T>> getValues({ListPaginationParams? pagination}) async {
-    final list = _items.values.toList();
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
     if (pagination == null) {
-      return list;
+      return _items;
     } else {
       final start = (pagination.page - 1) * pagination.perPage;
       final end = start + pagination.perPage;
-      return list.sublist(start, end);
-    }
-  }
-
-  @override
-  Future<List<String>> getKeys({ListPaginationParams? pagination}) async {
-    final list = _items.keys.toList();
-    if (pagination == null) {
-      return list;
-    } else {
-      final start = (pagination.page - 1) * pagination.perPage;
-      final end = start + pagination.perPage;
-      return list.sublist(start, end);
+      return Map.fromIterables(
+        _items.keys.toList().sublist(start, end),
+        _items.values.toList().sublist(start, end),
+      );
     }
   }
 

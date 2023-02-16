@@ -89,7 +89,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
 
   //as the memory box adapter is used, the box should be empty on start
   test('test empty on start', () async {
-    expect(await box.getKeys(), []);
+    expect(await box.getAll(), isEmpty);
   });
 
   //write tests for clear
@@ -134,8 +134,8 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     expect(await box.containsKey("aefjbglisbgabegosbgo"), false);
   });
 
-  //write tests for getKeys
-  test('box getKeys', () async {
+  //write tests for getAll
+  test('box getAll', () async {
     //clear box for next tests
     await box.clear();
 
@@ -143,6 +143,6 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await box.put(key, value);
     await box.put(key2, value2);
 
-    expect(await box.getKeys(), [key, key2]);
+    expect(await box.getAll(), {key: value, key2: value2});
   });
 }

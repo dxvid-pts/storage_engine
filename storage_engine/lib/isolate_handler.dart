@@ -81,11 +81,8 @@ Future<void> _isolateRunner(SendPort sPort) async {
           case BoxFunctionType.get:
             result = adapters[message.collectionKey]?.get(message.key!);
             break;
-          case BoxFunctionType.getKeys:
-            result = adapters[message.collectionKey]?.getKeys();
-            break;
-          case BoxFunctionType.getValues:
-            result = adapters[message.collectionKey]?.getValues();
+          case BoxFunctionType.getAll:
+            result = adapters[message.collectionKey]?.getAll(pagination: message.value);
             break;
           case BoxFunctionType.put:
             result = adapters[message.collectionKey]
@@ -152,8 +149,7 @@ enum BoxFunctionType {
   init,
   containsKey,
   get,
-  getValues,
-  getKeys,
+  getAll,
   put,
   putAll,
   delete,

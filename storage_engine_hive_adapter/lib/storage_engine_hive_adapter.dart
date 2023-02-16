@@ -20,28 +20,18 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
   Future<void> clear() => _box.clear();
 
   @override
-  Future<List<T>> getValues({ListPaginationParams? pagination}) async {
-    final list = _box.values.toList();
-    
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
+    final Map<String, T> map = _box.toMap().cast();
+
     if (pagination == null) {
-      return list;
+      return map;
     } else {
       final start = (pagination.page - 1) * pagination.perPage;
       final end = start + pagination.perPage;
-      return list.sublist(start, end);
-    }
-  }
-
-  @override
-  Future<List<String>> getKeys({ListPaginationParams? pagination}) async {
-    final List<String> list = [..._box.keys];
-
-    if (pagination == null) {
-      return list;
-    } else {
-      final start = (pagination.page - 1) * pagination.perPage;
-      final end = start + pagination.perPage;
-      return list.sublist(start, end);
+      return Map.fromIterables(
+        _box.keys.cast<String>().toList().sublist(start, end),
+        _box.values.toList().sublist(start, end),
+      );
     }
   }
 

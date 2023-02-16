@@ -16,7 +16,7 @@ class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
     required PocketBase pb,
     required T? Function(RecordModel) convertToType,
     required Json Function(T) convertToRecordModel,
-  }) : super(runInIsolate: true) {
+  }) : super(runInIsolate: false) {
     _pb = pb;
     _convertToType = convertToType;
     _convertToRecordModel = convertToRecordModel;
@@ -29,9 +29,6 @@ class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
 
     // watch for changes
     _collection.subscribe('*', (RecordSubscriptionEvent e) {
-      //clear list cache
-      _listCache.clear();
-
       if (e.action == "delete") {
         //notify delete
         notifyListeners(e.record!.id, UpdateAction.delete);
@@ -57,41 +54,16 @@ class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
   }
 
   @override
-  Future<List<T>> getValues({ListPaginationParams? pagination}) async {
-    final list = await _getFullList(pagination);
-
-    return list
-        .map((e) => _convertToType(e))
-        .where((e) => e != null)
-        .cast<T>()
-        .toList();
-  }
-
-  @override
-  Future<List<String>> getKeys({ListPaginationParams? pagination}) async {
-    return (await _getFullList(pagination)).map((e) => e.id).toList();
-  }
-
-  //cache list to avoid multiple requests (keys/values are usually called together)
-  //page (-1) is used to get all records
-  final Map<int, List<RecordModel>> _listCache = {};
-  Future<List<RecordModel>> _getFullList(
-    ListPaginationParams? pagination,
-  ) async {
-    if (_listCache.containsKey(pagination?.page ?? -1)) {
-      return _listCache[pagination?.page ?? -1]!;
-    } else {
-      final List<RecordModel> list = pagination == null
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
+     final List<RecordModel> list = pagination == null
           ? await _collection.getFullList()
           : (await _collection.getList(
                   page: pagination.page, perPage: pagination.perPage))
               .items;
 
-      //cache list
-      _listCache[pagination?.page ?? -1] = list;
-
-      return list;
-    }
+    return Map.fromEntries(
+      list.map((e) => MapEntry(e.id, _convertToType(e)!)),
+    );
   }
 
   @override

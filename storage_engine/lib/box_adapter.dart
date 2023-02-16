@@ -30,9 +30,7 @@ abstract class BoxAdapter<T> {
 
   Future<void> clear();
 
-  Future<List<T>> getValues({ListPaginationParams? pagination});
-
-  Future<List<String>> getKeys({ListPaginationParams? pagination});
+  Future<Map<String, T>> getAll({ListPaginationParams? pagination});
 
   void notifyListeners(String key, UpdateAction action) {
     for (var listener in _listeners) {

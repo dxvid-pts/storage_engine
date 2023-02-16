@@ -35,16 +35,12 @@ class StorageEngine {
   }) async {
     final boxKey = _getBoxKey(collectionKey, oldVersion);
 
-    print(await _legacyBoxes.getKeys());
-
     //check if box has data left -> migrate
     if (await _legacyBoxes.containsKey(boxKey) &&
         await _legacyBoxes.get(boxKey) == true) {
       //get all data from old adapter
-      final map = Map<String, T>.fromIterables(
-        await oldAdapter.getKeys(),
-        await oldAdapter.getValues(),
-      );
+      //TODO: pagination
+      final map = await oldAdapter.getAll();
 
       //get current box from collection key
       final currentBox = getBox<T>(collectionKey);
