@@ -26,6 +26,9 @@ jobs:
 
       - name: Test storage_engine
         run: cd storage_engine
+        
+      - name: test env
+        run: ls
 
       - name: Install dependencies
         run: dart pub get
