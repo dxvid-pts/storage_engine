@@ -231,10 +231,8 @@ class StorageBox<T> {
 
     //always prefer cache over storage
     //check if key is in cache and overwrite storage value
-    for(final cacheKey in _cache.keys) {
-      if(values.containsKey(cacheKey)) {
-        values[cacheKey] = _cache[cacheKey]!;
-      }
+    for (final cacheKey in _cache.keys) {
+      values[cacheKey] = _cache[cacheKey]!;
     }
 
     return values;

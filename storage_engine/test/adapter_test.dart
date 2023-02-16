@@ -185,6 +185,23 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
       _sublistMap<T>(expectedMap, 90, 100),
     );
   });
+
+  //write tests for put with latency
+  test('box latency put', () async {
+    //clear box for next tests
+    await box.clear();
+
+    //-------------test getKeys: key = val -> getKeys => [key] -------------
+    await box.put(key, value, latency: const Duration(milliseconds: 100));
+    await box.put(key2, value2);
+
+    //key should be in box as it will be cached
+    expect(await box.getAll(), {key: value, key2: value2});
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    expect(await box.getAll(), {key: value, key2: value2});
+  });
 }
 
 Map<String, T> _sublistMap<T>(Map<String, T> map, int start, int end) {
