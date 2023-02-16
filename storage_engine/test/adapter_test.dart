@@ -145,4 +145,54 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
 
     expect(await box.getAll(), {key: value, key2: value2});
   });
+
+  //write tests for getAll pagination
+  test('box getAll pagination', () async {
+    //clear box for next tests
+    await box.clear();
+
+    //-------------test getKeys: key = val -> getKeys => [key] -------------
+    final Map<String, T> expectedMap = {};
+    for (int i = 0; i < 100; i++) {
+      final testKey = "key$i";
+
+      expectedMap[testKey] = value;
+      await box.put(testKey, value);
+    }
+
+    expect(
+      await box.getAll(
+          pagination: const ListPaginationParams(page: 0, perPage: 10)),
+      _sublistMap<T>(expectedMap, 0, 10),
+    );
+
+    expect(
+      await box.getAll(
+          pagination: const ListPaginationParams(page: 1, perPage: 10)),
+      _sublistMap<T>(expectedMap, 10, 20),
+    );
+
+    expect(
+      await box.getAll(
+          pagination: const ListPaginationParams(page: 1, perPage: 30)),
+      _sublistMap<T>(expectedMap, 30, 60),
+    );
+
+    //list only goes to 100, so this can only return 10 (90-100 instead of 90-120)
+     expect(
+      await box.getAll(
+          pagination: const ListPaginationParams(page: 3, perPage: 30)),
+      _sublistMap<T>(expectedMap, 90, 100),
+    );
+  });
+}
+
+Map<String, T> _sublistMap<T>(Map<String, T> map, int start, int end) {
+  final keys = map.keys.toList();
+  final values = map.values.toList();
+
+  return Map.fromIterables(
+    keys.sublist(start, end),
+    values.sublist(start, end),
+  );
 }

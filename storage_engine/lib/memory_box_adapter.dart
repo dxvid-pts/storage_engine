@@ -16,8 +16,14 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
     if (pagination == null) {
       return _items;
     } else {
-      final start = (pagination.page - 1) * pagination.perPage;
-      final end = start + pagination.perPage;
+      final start = pagination.page * pagination.perPage;
+      int end = start + pagination.perPage;
+
+      //make sure we don't go out of bounds
+      if (end > _items.length) {
+        end = _items.length;
+      }
+
       return Map.fromIterables(
         _items.keys.toList().sublist(start, end),
         _items.values.toList().sublist(start, end),

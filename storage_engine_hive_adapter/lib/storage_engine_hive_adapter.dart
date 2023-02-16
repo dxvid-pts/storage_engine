@@ -27,7 +27,13 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
       return map;
     } else {
       final start = (pagination.page - 1) * pagination.perPage;
-      final end = start + pagination.perPage;
+      int end = start + pagination.perPage;
+
+      //make sure we don't go out of bounds
+      if (end > _box.length) {
+        end = _box.length;
+      }
+
       return Map.fromIterables(
         _box.keys.cast<String>().toList().sublist(start, end),
         _box.values.toList().sublist(start, end),
