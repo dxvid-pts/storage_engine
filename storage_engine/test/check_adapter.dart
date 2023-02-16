@@ -53,15 +53,16 @@ Future<void> testAdapter({
     testSet: {"test2"},
   );
 
-  await testAdapterWithType<String>(stringAdapter, "testValue", "testValue2");
-  await testAdapterWithType<int>(intAdapter, 1, 2000);
-  await testAdapterWithType<double>(doubleAdapter, 1.1, 2000.0);
-  await testAdapterWithType<bool>(boolAdapter, true, false);
-  await testAdapterWithType<Map<String, int>>(
-      mapAdapter, {"test": 1}, {"test": 2});
-  await testAdapterWithType<List<String>>(listAdapter, ["test"], ["test2"]);
-  await testAdapterWithType<Set<String>>(setAdapter, {"test"}, {"test2"});
-  await testAdapterWithType<TestClass>(classAdapter, class1, class2);
+  await Future.wait([
+    testAdapterWithType<String>(stringAdapter, "testValue", "testValue2"),
+    testAdapterWithType<int>(intAdapter, 1, 2000),
+    testAdapterWithType<double>(doubleAdapter, 1.1, 2000.0),
+    testAdapterWithType<bool>(boolAdapter, true, false),
+    testAdapterWithType<Map<String, int>>(mapAdapter, {"test": 1}, {"test": 2}),
+    testAdapterWithType<List<String>>(listAdapter, ["test"], ["test2"]),
+    testAdapterWithType<Set<String>>(setAdapter, {"test"}, {"test2"}),
+    testAdapterWithType<TestClass>(classAdapter, class1, class2),
+  ]);
 }
 
 class TestClass {
