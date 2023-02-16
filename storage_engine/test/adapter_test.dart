@@ -1,10 +1,10 @@
 import 'dart:math';
 
-import 'package:flutter_test/flutter_test.dart';
 import 'package:storage_engine/box_adapter.dart';
 import 'package:storage_engine/storage_box.dart';
 import 'package:storage_engine/storage_engine.dart';
 import 'package:storage_engine/update_enum.dart';
+import 'package:test/test.dart';
 
 Future<void> testAdapterWithType<T>(
   BoxAdapter<T> adapter,

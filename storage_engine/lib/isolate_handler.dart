@@ -1,8 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-
-import 'package:async/async.dart';
-import 'package:flutter/foundation.dart';
 import 'package:storage_engine/box_adapter.dart';
 import 'package:stream_channel/isolate_channel.dart';
 
@@ -54,7 +51,7 @@ Future<dynamic> runBoxFunctionInIsolate({
 //------------ isolate runner ------------
 
 Future<void> _isolateRunner(SendPort sPort) async {
-  debugPrint('Spawned isolate started.');
+  print('debugging: spawned isolate.');
   final Map<String, BoxAdapter> adapters = {};
 
   IsolateChannel channelB = IsolateChannel.connectSend(sPort);
@@ -66,7 +63,7 @@ Future<void> _isolateRunner(SendPort sPort) async {
     final jobId = wrapper.jobId;
     final message = wrapper.body;
 
-    debugPrint("received message: ${message.runtimeType}");
+    print("debugging: received isolate message: ${message.runtimeType}");
     if (message is BoxFunctionInIsolateStruct) {
       //dont wait for futures so we dont stop the isolate (return the future -> main thread waits)
       try {
@@ -82,7 +79,8 @@ Future<void> _isolateRunner(SendPort sPort) async {
             result = adapters[message.collectionKey]?.get(message.key!);
             break;
           case BoxFunctionType.getAll:
-            result = adapters[message.collectionKey]?.getAll(pagination: message.value);
+            result = adapters[message.collectionKey]
+                ?.getAll(pagination: message.value);
             break;
           case BoxFunctionType.put:
             result = adapters[message.collectionKey]
