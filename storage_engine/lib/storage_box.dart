@@ -13,7 +13,7 @@ class StorageBox<T> {
   late final Future<void> _waitToBeInitialized;
 
   //allways prefers cache over storage!
-  //if something is in the cache, the storage beckend is not contacted
+  //if something is in the cache, the storage backend is not contacted
   final Map<String, T> _cache = {};
 
   StorageBox.from(BoxAdapter<T> adapter, String boxKey) {
