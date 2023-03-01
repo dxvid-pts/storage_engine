@@ -216,6 +216,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNext<T>(
       box: box,
       expectedKey: key,
+      expectedValue: value,
       expectedAction: UpdateAction.put,
       function: () => box.put(key, value),
     );
@@ -224,6 +225,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNext<T>(
       box: box,
       expectedKey: key,
+      expectedValue: value,
       expectedAction: UpdateAction.put,
       function: () => box.put(key, value),
     );
@@ -232,6 +234,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNext<T>(
       box: box,
       expectedKey: key,
+      expectedValue: value2,
       expectedAction: UpdateAction.put,
       function: () => box.put(key, value2),
     );
@@ -240,6 +243,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNext<T>(
       box: box,
       expectedKey: key,
+      expectedValue: value2, //value2 is the last value
       expectedAction: UpdateAction.delete,
       function: () async {
         await box.remove(key);
@@ -250,6 +254,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNextList<T>(
       box: box,
       expectedKeys: [key, key2],
+      expectedValues: [value, value2],
       expectedActions: [UpdateAction.put, UpdateAction.put],
       function: () async {
         await box.putAll({key: value, key2: value2});
@@ -260,6 +265,7 @@ Future<void> boxAdapterTest<T>(StorageBox<T> box, T value, T value2) async {
     await _expectNextList<T>(
       box: box,
       expectedKeys: [key, key2],
+      expectedValues: [value, value2],
       expectedActions: [UpdateAction.delete, UpdateAction.delete],
       function: () async {
         await box.clear();
@@ -281,27 +287,32 @@ Map<String, T> _sublistMap<T>(Map<String, T> map, int start, int end) {
 Future<void> _expectNext<T>({
   required StorageBox<T> box,
   required String expectedKey,
+  required T expectedValue,
   required UpdateAction expectedAction,
   required Function function,
 }) =>
     _expectNextList(
         box: box,
         expectedKeys: [expectedKey],
+        expectedValues: [expectedValue],
         expectedActions: [expectedAction],
         function: function);
 
 Future<void> _expectNextList<T>({
   required StorageBox<T> box,
   required List<String> expectedKeys,
+  required List<T> expectedValues,
   required List<UpdateAction> expectedActions,
   required Function function,
 }) async {
   final List<String> receivedKeys = [];
+  final List<T> receivedValues = [];
   final List<UpdateAction> receivedActions = [];
 
   //listen to the box
-  box.watch((key, action) {
+  box.watch((key, value, action) {
     receivedKeys.add(key);
+    receivedValues.add(value);
     receivedActions.add(action);
   });
 
@@ -313,6 +324,7 @@ Future<void> _expectNextList<T>({
 
   //check if the event was received
   _checkLists(receivedKeys, expectedKeys);
+  _checkLists(receivedValues, expectedValues);
   _checkLists(receivedActions, expectedActions);
 }
 

@@ -143,7 +143,7 @@ class StorageBox<T> {
     }
 
     // notify listeners
-    _adapter.notifyListeners(key, UpdateAction.put);
+    _adapter.notifyListeners(key, value, UpdateAction.put);
   }
 
   Future<void> putAll(Map<String, T> values) async {
@@ -162,11 +162,22 @@ class StorageBox<T> {
 
     // notify listeners for each key
     for (var key in values.keys) {
-      _adapter.notifyListeners(key, UpdateAction.put);
+      _adapter.notifyListeners(key, values[key]!, UpdateAction.put);
     }
   }
 
   Future<void> remove(String key) async {
+    //get value to notify listeners if there are listeners
+    T? value;
+    if (_adapter.listeners.isNotEmpty) {
+      value = (await _adapter.get(key)) ?? _cache[key];
+
+      //as we confirmed that the key does not exist, we can return. No need to remove
+      if (value == null) {
+        return;
+      }
+    }
+
     //if key is in cache, remove it
     if (_cache.containsKey(key)) {
       _cache.remove(key);
@@ -184,20 +195,32 @@ class StorageBox<T> {
       await _adapter.remove(key);
     }
 
-    // notify listeners
-    _adapter.notifyListeners(key, UpdateAction.delete);
+    // notify listeners for each key if there are listeners
+    if (_adapter.listeners.isNotEmpty) {
+      _adapter.notifyListeners(key, value!, UpdateAction.delete);
+    }
   }
 
   Future<void> clear() async {
     //TODO: Implement pagination to avoid loading all keys from large databases into memory
+
+    //temporarily keep cache to notify listeners later
+    final Map<String, T> _valueCache = _cache;
 
     //clear cache
     _cache.clear();
 
     await _waitToBeInitialized;
 
-    //get keys to notify listeners
-    final keys = (await _adapter.getAll()).keys.toSet();
+    //only get update values if there are listeners to save resources
+    Map<String, T> values = {};
+    if (_adapter.listeners.isNotEmpty) {
+      //get keys to notify listeners
+      values = {
+        ...(await _adapter.getAll()),
+        ..._valueCache,
+      };
+    }
 
     if (_useIsolate) {
       await runBoxFunctionInIsolate(
@@ -208,9 +231,11 @@ class StorageBox<T> {
       await _adapter.clear();
     }
 
-    // notify listeners for each key
-    for (String key in keys) {
-      _adapter.notifyListeners(key, UpdateAction.delete);
+    // notify listeners for each key if there are listeners
+    if (_adapter.listeners.isNotEmpty) {
+      for (String key in values.keys) {
+        _adapter.notifyListeners(key, values[key]!, UpdateAction.delete);
+      }
     }
   }
 
@@ -238,5 +263,5 @@ class StorageBox<T> {
     return values;
   }
 
-  void watch(UpdateCallback callback) => _adapter.watch(callback);
+  void watch(UpdateCallback<T> callback) => _adapter.watch(callback);
 }

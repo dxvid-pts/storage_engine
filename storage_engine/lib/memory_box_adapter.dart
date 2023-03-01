@@ -1,4 +1,5 @@
 import 'package:storage_engine/box_adapter.dart';
+import 'package:storage_engine/utils.dart';
 
 class MemoryBoxAdapter<T> extends BoxAdapter<T> {
   MemoryBoxAdapter() : super(runInIsolate: false);
@@ -13,22 +14,10 @@ class MemoryBoxAdapter<T> extends BoxAdapter<T> {
 
   @override
   Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
-    if (pagination == null) {
-      return _items;
-    } else {
-      final start = pagination.page * pagination.perPage;
-      int end = start + pagination.perPage;
-
-      //make sure we don't go out of bounds
-      if (end > _items.length) {
-        end = _items.length;
-      }
-
-      return Map.fromIterables(
-        _items.keys.toList().sublist(start, end),
-        _items.values.toList().sublist(start, end),
-      );
-    }
+    return getPaginatedListFromCache<T>(
+      cache: _items,
+      pagination: pagination,
+    );
   }
 
   @override

@@ -19,31 +19,29 @@ class SynchronizationAdapter<T> extends BoxAdapter<T> {
       _primaryRawAdapter.init("$boxKey--one")
         ..then((_) {
           //listen for changes in the primary adapter and update the secondary adapter
-          _primaryRawAdapter.watch((key, action) async {
+          _primaryRawAdapter.watch((key, value, action) async {
             if (action == UpdateAction.put) {
-              await _secondaryRawAdapter.put(
-                  key, (await _primaryRawAdapter.get(key))!);
+              await _secondaryRawAdapter.put(key, value);
             } else if (action == UpdateAction.delete) {
               await _secondaryRawAdapter.remove(key);
             }
 
             //notify listeners of the sync adapter
-            notifyListeners(key, action);
+            notifyListeners(key, value, action);
           });
         }),
       _secondaryRawAdapter.init("$boxKey--two")
         ..then((_) {
           //listen for changes in the secondary adapter and update the primary adapter
-          _secondaryRawAdapter.watch((key, action) async {
+          _secondaryRawAdapter.watch((key, value, action) async {
             if (action == UpdateAction.put) {
-              await _primaryRawAdapter.put(
-                  key, (await _secondaryRawAdapter.get(key))!);
+              await _primaryRawAdapter.put(key, value);
             } else if (action == UpdateAction.delete) {
               await _primaryRawAdapter.remove(key);
             }
 
             //notify listeners of the sync adapter
-            notifyListeners(key, action);
+            notifyListeners(key, value, action);
           });
         }),
     ]);

@@ -2,6 +2,7 @@ library storage_engine_hive_adapter;
 
 import 'package:hive/hive.dart';
 import 'package:storage_engine/box_adapter.dart';
+import 'package:storage_engine/utils.dart';
 
 class HiveBoxAdapter<T> extends BoxAdapter<T> {
   HiveBoxAdapter({
@@ -37,24 +38,10 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
 
   @override
   Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
-    final Map<String, T> map = _box.toMap().cast();
-
-    if (pagination == null) {
-      return map;
-    } else {
-      final start = (pagination.page - 1) * pagination.perPage;
-      int end = start + pagination.perPage;
-
-      //make sure we don't go out of bounds
-      if (end > _box.length) {
-        end = _box.length;
-      }
-
-      return Map.fromIterables(
-        _box.keys.cast<String>().toList().sublist(start, end),
-        _box.values.toList().sublist(start, end),
-      );
-    }
+    return getPaginatedListFromCache<T>(
+      cache: _box.toMap().cast(),
+      pagination: pagination,
+    );
   }
 
   @override

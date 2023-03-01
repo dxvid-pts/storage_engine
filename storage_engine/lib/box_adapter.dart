@@ -1,6 +1,6 @@
 import 'package:storage_engine/update_enum.dart';
 
-typedef UpdateCallback<T> = void Function(String key, UpdateAction action);
+typedef UpdateCallback<T> = void Function(String key, T value, UpdateAction action);
 
 class ListPaginationParams {
   final int page;
@@ -14,7 +14,7 @@ abstract class BoxAdapter<T> {
 
   BoxAdapter({this.runInIsolate = true});
 
-  final List<UpdateCallback> _listeners = [];
+  final List<UpdateCallback<T>> listeners = [];
 
   Future<void> init(String boxKey);
 
@@ -32,13 +32,14 @@ abstract class BoxAdapter<T> {
 
   Future<Map<String, T>> getAll({ListPaginationParams? pagination});
 
-  void notifyListeners(String key, UpdateAction action) {
-    for (var listener in _listeners) {
-      listener(key, action);
+  void notifyListeners(String key, T value, UpdateAction action) {
+    for (var listener in listeners) {
+      listener(key, value, action);
     }
   }
 
-  void watch(UpdateCallback callback) {
-    _listeners.add(callback);
+  //TODO: unregister listener
+  void watch(UpdateCallback<T> callback) {
+    listeners.add(callback);
   }
 }
