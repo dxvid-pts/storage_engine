@@ -9,12 +9,12 @@ typedef Json = Map<String, dynamic>;
 class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
   late final PocketBase _pb;
   late final RecordService _collection;
-  late final T? Function(RecordModel) _convertToType;
+  late final T Function(RecordModel) _convertToType;
   late final Json Function(T) _convertToRecordModel;
 
   PocketbaseBoxAdapter({
     required PocketBase pb,
-    required T? Function(RecordModel) convertToType,
+    required T Function(RecordModel) convertToType,
     required Json Function(T) convertToRecordModel,
   }) : super(runInIsolate: false) {
     _pb = pb;
@@ -31,10 +31,12 @@ class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
     _collection.subscribe('*', (RecordSubscriptionEvent e) {
       if (e.action == "delete") {
         //notify delete
-        notifyListeners(e.record!.id, UpdateAction.delete);
+        notifyListeners(
+            e.record!.id, _convertToType(e.record!), UpdateAction.delete);
       } else {
         //notify put
-        notifyListeners(e.record!.id, UpdateAction.put);
+        notifyListeners(
+            e.record!.id, _convertToType(e.record!), UpdateAction.put);
       }
     });
   }
@@ -55,11 +57,11 @@ class PocketbaseBoxAdapter<T> extends BoxAdapter<T> {
 
   @override
   Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
-     final List<RecordModel> list = pagination == null
-          ? await _collection.getFullList()
-          : (await _collection.getList(
-                  page: pagination.page, perPage: pagination.perPage))
-              .items;
+    final List<RecordModel> list = pagination == null
+        ? await _collection.getFullList()
+        : (await _collection.getList(
+                page: pagination.page, perPage: pagination.perPage))
+            .items;
 
     return Map.fromEntries(
       list.map((e) => MapEntry(e.id, _convertToType(e)!)),
