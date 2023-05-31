@@ -13,7 +13,7 @@ class StorageEngine {
   static final BoxAdapter<bool> _legacyBoxes = MemoryBoxAdapter<bool>()
     ..init(_legacyBoxKey);
 
-  static void registerBoxAdapter<T>({
+  static StorageBox<T> registerBoxAdapter<T>({
     required String collectionKey,
     required int version,
     required BoxAdapter<T> adapter,
@@ -26,6 +26,8 @@ class StorageEngine {
 
     //log box key and mark available data to true, so we can migrate data later
     _legacyBoxes.put(boxKey, true);
+
+    return getBox<T>(collectionKey);
   }
 
   static Future<void> migrateBoxFromAdapterIfExist<T>({
