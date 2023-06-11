@@ -8,9 +8,28 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
   HiveBoxAdapter({
     required this.path,
     this.adapters = const {},
-  }) : super(runInIsolate: true);
+  }) : super(runInIsolate: false) {
+    //asset T is not of type list
+    final type = T.toString();
+    bool unsupportedType = false;
 
-  final String path;
+    if (type.startsWith("List")) {
+      unsupportedType = true;
+
+      switch (type) {
+        case "List<String>":
+        case "List<int>":
+        case "List<double>":
+        case "List<bool>":
+          unsupportedType = false;
+          break;
+      }
+    }
+
+    assert(unsupportedType == false,
+        "Hive does not support storing lists other than primitive Types such as List<String>. Consider parsing your data into a json string.");
+  }
+
   Set<TypeAdapter<T>> adapters;
 
   @override
@@ -21,7 +40,7 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
 
     for (final adapter in adapters) {
       if (!Hive.isAdapterRegistered(adapter.typeId)) {
-        Hive.registerAdapter(adapter);
+        Hive.registerAdapter<T>(adapter);
       }
     }
 
@@ -39,7 +58,7 @@ class HiveBoxAdapter<T> extends BoxAdapter<T> {
   @override
   Future<Map<String, T>> getAll({ListPaginationParams? pagination}) async {
     return getPaginatedListFromCache<T>(
-      cache: _box.toMap().cast(),
+      cache: _box.toMap().cast<String, T>(),
       pagination: pagination,
     );
   }
